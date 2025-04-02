@@ -1,0 +1,122 @@
+server:
+  port: 8088  
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3307/ShopApp?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true}
+    #url: ${SPRING_DATASOURCE_URL:jdbc:mysql://ubuntu-server-01.local:3399/ShopApp?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: ${MYSQL_ROOT_PASSWORD:Abc123456789@}
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: none #chỗ này mà sửa thành drop-create thì rất nguy
+      #ddl-auto: validate
+      #Hibernate sẽ không tạo, sửa đổi hoặc xóa bất kỳ bảng, cột hay ràng buộc nào trong cơ sở dữ liệu
+      #validate thường được sử dụng trong môi trường production
+      #Nếu có sự khác biệt giữa cấu trúc cơ sở dữ liệu và các entity class
+      #lỗi sẽ được hiển thị và yêu cầu sửa đổi cấu trúc cơ sở dữ liệu một cách thủ công
+    properties:
+      hibernate:
+      dialect: org.hibernate.dialect.MySQL8Dialect
+      format_sql: true
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 100MB
+  messages:
+    basename: i18n/messages
+    encoding: UTF-8
+    default-locale: en
+  #flyway
+  # Đường dẫn tới thư mục chứa các script Flyway
+  flyway:
+    locations: classpath:/db/migration,classpath:/dev/db/migration
+    #Phiên bản baseline sẽ = 1 và không thực hiện bất kỳ thay đổi nào trong DB
+    baseline-on-migrate: true
+    baseline-version: 0
+  data:
+    redis:
+      #spring.data.redis.use-redis-cache
+      use-redis-cache: false
+      host: ${REDIS_HOST:localhost} # Default to 'localhost' if not provided
+      #host: ${REDIS_HOST:ubuntu-server-01.local} # Default to 'localhost' if not provided
+      port: ${REDIS_PORT:6379}      # Default to 6379 if not provided
+  kafka:
+    client:
+      dns:
+        lookup: use_dns_cache
+    bootstrap-servers: ${KAFKA_BROKER_SERVER:localhost}:${KAFKA_BROKER_PORT:9092}
+    producer:
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      #transaction-id-prefix: tx.
+      properties:
+        "[spring.json.type.mapping]": category:com.project.shopapp.models.Category
+    consumer:
+      value-deserializer: org.apache.kafka.common.serialization.ByteArrayDeserializer
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: 118784967487-v1afkaool13r3h52tpj1dmrv623c62ql.apps.googleusercontent.com
+            client-secret: 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
+            redirect-uri: "${GOOGLE_REDIRECT_URI:http://localhost:4300/auth/google/callback}" #sau khi user đăng nhập google thành công sẽ tự redirect đến trang này kèm code(của gooogle)
+            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
+            #auth-uri: "https://www.facebook.com/v3.2/dialog/oauth"
+            resource-server:
+              opaque-token:
+                introspection-uri: "https://googleapis.com"  # Đảm bảo URI này chính xác
+          facebook:
+            client-id: 1007654770988152
+            client-secret: 5adb1d315754ac7e7e26b09d4c8b8b17
+            redirect-uri: "${FACEBOOK_REDIRECT_URI:http://localhost:4300/auth/facebook/callback}" #sau khi user đăng nhập google thành công sẽ tự redirect đến trang này kèm code(của fb)
+            auth-uri: https://www.facebook.com/v21.0/dialog/oauth
+            token-uri: https://graph.facebook.com/oauth/access_token
+            user-info-uri: https://graph.facebook.com/me?fields=id,name,email,picture.type(large)
+            scope:
+              - email
+              - public_profile
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
+    mode: HTML
+api:
+  prefix: /api/v1
+jwt:
+  expiration: 2592000 #30 days = 30 * 24 * 60 * 60
+  expiration-refresh-token: 5184000 #60 days = 60 * 24 * 60 * 60
+  secretKey: TaqlmGv1iEDMRiFp/pHuID1+T84IABfuA0xXh4GhiUI=
+
+logging:
+  level:
+    org:
+      springframework.security: DEBUG
+
+# swagger-ui custom path
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /api-docs
+  show-actuator: true
+
+#health check
+management:
+  endpoint:
+    health:
+      show-details: always
+  endpoints:
+    web:
+      base-path: /api/v1/actuator
+      exposure:
+        #include: "health"
+        include: "health, info"
+vnpay:
+  pay-url: "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html"
+  return-url: "${VNPAY_RETURN_URI:http://localhost:4200/payments/payment-callback}"
+  tmn-code: "OMZF7JB7" # Add your TMN code here
+  secret-key: "J6S80U7KQ2LKSIK0Q8QJK6K8LVVGPUVD" # Add your secret key here
+  api-url: "https://sandbox.vnpayment.vn/merchant_webapi/api/transaction"
+
+

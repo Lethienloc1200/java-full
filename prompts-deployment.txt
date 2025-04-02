@@ -1,0 +1,20 @@
+Tôi cần viết 1 chương trình bằng python làm nhiệm vụ sau:
+Tạo ra 1 sub process chạy lệnh sau:
+docker rm -f zookeeper-01 zookeeper-02 zookeeper-03 kafka-broker-01
+Tạo ra 3 sub process, chạy các lệnh sau:
+docker-compose -f ./kafka-deployment.yaml up -d zookeeper-01
+docker-compose -f ./kafka-deployment.yaml up -d zookeeper-02
+docker-compose -f ./kafka-deployment.yaml up -d zookeeper-03
+
+Sau khi chạy hãy định kỳ kiểm tra logs của 3 container này bằng các lệnh:
+docker logs zookeeper-01
+docker logs zookeeper-02
+docker logs zookeeper-03
+
+Kiểm tra khoảng 10 lần, mỗi lần delay khoảng 1 giây, 
+nếu phát hiện trong log có chứa chữ "error" hoặc "exception" nghĩa là bị lỗi, hiện chi tiết dòng log đó ra
+Sau 10 lần ko thấy lỗi thì chạy lệnh:
+docker-compose -f ./kafka-deployment.yaml up -d kafka-broker-01
+Kiểm tra logs trong khoảng 5s để tìm lỗi
+
+
